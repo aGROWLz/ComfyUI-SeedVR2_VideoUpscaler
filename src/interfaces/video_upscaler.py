@@ -77,7 +77,7 @@ class SeedVR2VideoUpscaler(io.ComfyNode):
                 io.Int.Input("seed",
                     default=42,
                     min=0,
-                    max=2**32 - 1,
+                    max=2**64 - 1,
                     step=1,
                     tooltip=(
                         "Random seed for reproducible generation (default: 42).\n"
@@ -261,6 +261,11 @@ class SeedVR2VideoUpscaler(io.ComfyNode):
             ValueError: If model files cannot be downloaded or configuration is invalid
             RuntimeError: If generation fails
         """
+        # Normalize seed to 32-bit unsigned range to ensure compatibility with underlying RNGs
+        # This also handles cases where external APIs provide 64-bit or larger integer seeds.
+        seed = int(seed)
+        seed = seed & 0xFFFFFFFF
+
         # Initialize debug (stateless - stored in local variable)
         debug = Debug(enabled=enable_debug)
         
